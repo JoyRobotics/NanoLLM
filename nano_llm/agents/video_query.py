@@ -79,7 +79,7 @@ class VideoQuery(Agent):
         self.prompt = self.prompt_history[0]
         
         self.last_prompt = None
-        self.auto_refresh = True
+        self.auto_refresh = None
         self.auto_refresh_db = True
         
         self.rag_threshold = 1.0
@@ -195,6 +195,7 @@ class VideoQuery(Agent):
             y = wrap_text(self.font, image, text=text, x=5, y=y, color=self.font.White, background=self.font.Gray40)
         
         self.video_output(image)
+        self.prompt = self.last_prompt = ""
    
     def on_text(self, text):
         """
@@ -279,7 +280,7 @@ class VideoQuery(Agent):
         Websocket message handler from the client.
         """
         if msg_type == WebServer.MESSAGE_JSON:
-            #print(f'\n\n###############\n# WEBSOCKET JSON MESSAGE\n#############\n{msg}')
+            print(f'\n\n###############\n# WEBSOCKET JSON MESSAGE\n#############\n{msg}')
             if 'prompt' in msg:
                 self.prompt = msg['prompt']
                 if self.prompt not in self.prompt_history:
@@ -340,7 +341,7 @@ class VideoQuery(Agent):
             frame_time = curr_time - self.start_time
             self.start_time = curr_time
             refresh_str = f"{1.0 / frame_time:.2f} FPS ({frame_time*1000:.1f} ms)"
-            self.server.send_message({'refresh_rate': refresh_str})
+            self.server.send_message({'refresh_rate': refresh_str,'text':self.text.replace('\n', '').replace('</s>', '').strip()})
             logging.info(f"refresh rate:  {refresh_str}")
 
     def start(self):
