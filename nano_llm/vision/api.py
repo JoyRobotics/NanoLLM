@@ -91,12 +91,11 @@ async def process_image(request: RequestModel):
         reply = model.generate(
             embedding,
             kv_cache=chat_history.kv_cache,
-            max_new_tokens=50,  # 最大新标记数
-            min_new_tokens=1,  # 最小新标记数
-            do_sample=True,
-            repetition_penalty=1.0,
-            temperature=1.0,
-            top_p=0.9,
+            max_new_tokens=128,  # 最大新标记数
+            min_new_tokens=-1,  # 最小新标记数
+            do_sample=False,
+            temperature=0.7,
+            top_p=0.95,
             streaming=False,
         )
         result_text = reply
