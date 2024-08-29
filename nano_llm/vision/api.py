@@ -59,6 +59,15 @@ async def startup_event():
     # 打开视频流
     video_source = VideoSource(**vars(args), cuda_stream=0, return_copy=False)
 
+    # 模型预热过程
+    print("开始预热模型...")
+    dummy_input = "This is a warm-up prompt."
+    chat_history.append('user', dummy_input)
+    embedding, _ = chat_history.embed_chat()
+    model.generate(embedding, kv_cache=chat_history.kv_cache, max_new_tokens=1, streaming=False)
+    chat_history.reset()  # 重置聊天历史记录
+    print("模型预热完成")
+
 # 定义处理图像请求的端点
 @app.post("/process_image/")
 async def process_image(request: RequestModel):
@@ -113,6 +122,10 @@ async def process_image(request: RequestModel):
     print(f"time: {time_elapsed * 1000:.2f} ms rate: {1.0 / time_elapsed:.2f} FPS")  # 打印时间和帧率
 
     chat_history.reset()  # 重置聊天历史记录
+
+    # 处理特殊标签
+    if isinstance(results, list):
+        results = [item.replace('\n', '').replace('</s>', '').strip() for item in results]
 
     # 返回结果、经过时间和帧率
     return {"results": results, "time_elapsed_ms": time_elapsed * 1000, "fps": 1.0 / time_elapsed}
